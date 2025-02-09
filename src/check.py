@@ -51,12 +51,12 @@ print(rates)
 """Функция для вывода акций"""
 # Список акций
 symbols = ["AAPL", "AMZN", "GOOGL", "MSFT", "TSLA"]
-
-
 # Получаем данные о ценах акций
 stock_prices = get_stock_price(symbols)
 # Выводим результат
 print(stock_prices)
+
+
 # # Выводим результат
 # for stock in stock_prices:
 #     print(f"Акция: {stock['stock']}, Цена: {stock['price']}")

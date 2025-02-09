@@ -26,12 +26,11 @@ def report_to_file(filename=None):
             # Полный путь к файлу
             file_path = os.path.join(output_directory, generated_filename)
 
-            # Вызов функции и получение результата
-            result = func(*args, **kwargs)
-
-            # Запись результата в JSON-файл
             try:
-                # Преобразуем результат в формат, который можно сериализовать
+                # Вызов функции и получение результата
+                result = func(*args, **kwargs)
+
+                # Запись результата в JSON-файл
                 if isinstance(result, tuple):
                     result_to_save = (result[0].to_dict(orient='records'), result[1])  # Преобразуем DataFrame в список словарей
                 else:
@@ -40,8 +39,10 @@ def report_to_file(filename=None):
                 with open(file_path, 'w', encoding='utf-8') as file:
                     json.dump(result_to_save, file, ensure_ascii=False, indent=4)
                 logging.info(f"Результат функции '{func.__name__}' сохранен в файл: {file_path}")
+
             except (TypeError, ValueError) as e:
                 logging.error(f"Ошибка при записи результата в файл: {e}")
+                raise  # Передаем исключение дальше
 
             return result
         return wrapper

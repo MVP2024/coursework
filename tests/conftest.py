@@ -33,3 +33,9 @@ def sample_transactions() -> List[Dict[str, Any]]:
         {"Дата операции": "01.02.2025 12:00:00", "Сумма операции": -10, "Категория": "Транспорт"},
     ]
 
+
+# Фикстуры для функции `get_currency_rates`
+@pytest.fixture
+def mock_requests_get():
+    with patch('src.utils.requests.get') as mock_get:
+        yield mock_get
