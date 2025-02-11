@@ -8,17 +8,6 @@ from src.utils import load_data_from_excel, analyze_transactions, get_currency_r
 
 @report_to_file()
 def main(date_str: str, range_type: str = 'M') -> str:
-    """
-    Основная функция, которая фильтрует данные по диапазону дат, анализирует транзакции,
-    получает курсы валют и цены акций.
-
-    :param date_str: Строка с датой в формате 'YYYY-MM-DD'.
-    :param range_type: Диапазон данных ('W', 'M', 'Y', 'ALL'). По умолчанию 'M'.
-    :return: Строка с результатами анализа, курсов валют и цен акций, включая диапазон дат.
-    :raises ValueError: Если передан недопустимый диапазон данных.
-    :raises FileNotFoundError: Если файл с данными не найден.
-    :raises Exception: Если возникают ошибки при загрузке данных или запросах к API.
-    """
     try:
         # Преобразуем строку с датой в объект datetime
         date = datetime.strptime(date_str, "%Y-%m-%d")
@@ -37,7 +26,7 @@ def main(date_str: str, range_type: str = 'M') -> str:
             start_date = datetime.min  # Минимальная дата (1 января 1 года)
             end_date = date
         else:
-            raise ValueError("Недопустимое значение range_type. Допустимые значения: 'W', 'M', 'Y', 'ALL'.")
+            raise ValueError("Недопустимое значение range_type. Допустимые значения: 'W', 'M', 'Y', 'ALL'.");
 
         # Загружаем данные из Excel
         file_path = os.path.join(os.path.dirname(__file__), "..", "data", "operations.xlsx")
@@ -74,6 +63,27 @@ def main(date_str: str, range_type: str = 'M') -> str:
             'Биржевые цены': stock_prices
         }
 
+        # Запись результата выполнения функции в user_settings.json
+        settings_file_path = os.path.join(os.path.dirname(__file__), "..", "user_settings.json")
+
+        # Создаем новый словарь для хранения настроек
+        settings = {}
+
+        # Попробуем открыть файл для чтения и загрузить существующие настройки
+        try:
+            with open(settings_file_path, 'r', encoding='utf-8') as settings_file:
+                settings = json.load(settings_file)
+        except (FileNotFoundError, json.JSONDecodeError):
+            # Если файл не найден или пуст, создаем новый файл с пустым словарем
+            settings = {}
+
+        # Обновляем настройки результатом выполнения функции
+        settings["result"] = result  # Сохраняем результат выполнения функции
+
+        # Записываем обновленные данные в файл
+        with open(settings_file_path, 'w', encoding='utf-8') as settings_file:
+            json.dump(settings, settings_file, indent=4, ensure_ascii=False)  # Записываем обновленные данные
+
         return json.dumps(result, indent=4, ensure_ascii=False)
 
     except FileNotFoundError as e:
@@ -85,6 +95,7 @@ def main(date_str: str, range_type: str = 'M') -> str:
     except Exception as e:
         print(f"Произошла ошибка: {e}")
         return "Произошла ошибка при выполнении функции."
+
 
 # Запуск основной функции
 if __name__ == "__main__":
