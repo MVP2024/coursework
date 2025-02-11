@@ -62,8 +62,10 @@ def filter_transactions(transactions: List[Dict[str, Any]], date: str, range_typ
 def get_currency_rates(api_key_currency: Optional[str] = None, base_currency: str = "RUB", target_currencies: Optional[List[str]] = None) -> List[Dict[str, Any]]:
     """Загружает данные о курсе валют с API и возвращает список словарей."""
     logger.info("Получение курсов валют.")
+
     if api_key_currency is None:
         api_key_currency = os.getenv('API_KEY_currency')
+
     if not api_key_currency:
         logger.error("API_KEY не установлен.")
         raise ValueError("API_KEY не установлен.")
@@ -87,29 +89,40 @@ def get_currency_rates(api_key_currency: Optional[str] = None, base_currency: st
         # Формируем список словарей в нужном формате
         if target_currencies:
             currency_rates = [
-                {"валюта": currency, "оценка": round(1 / rates[currency], 2)}
+                {"валюта": currency, "ставка": round(1 / rates[currency], 2)}
                 for currency in target_currencies
                 if currency in rates
             ]
         else:
-            currency_rates = [{"валюта": currency, "оценка": round(1 / rate, 2)} for currency, rate in rates.items()]
+            currency_rates = [{"валюта": currency, "ставка": round(1 / rate, 2)} for currency, rate in rates.items()]
 
         return currency_rates
 
     except requests.exceptions.RequestException as e:
-        logger.error(f"Не удалось получить обменный курс: {e}")
-        raise ValueError("Не удалось получить обменный курс.") from e
+        # Если запрос не удался, добавляем статус код в сообщение об ошибке
+        if response is not None:
+            raise ValueError(f"Не удалось получить курсы валют. Статус код: {response.status_code}") from e
+        raise ValueError("Не удалось получить курсы валют.") from e
+
 
 # Применяем декоратор
 @report_to_file()
 def get_stock_price(symbols: List[str], api_key_stock: Optional[str] = None) -> List[Dict[str, Any]]:
     """Получение текущей стоимости акций по списку символов с использованием Alpha Vantage API."""
     logger.info("Получение цен акций.")
-    if api_key_stock is None:
-        api_key_stock = os.getenv('API_KEY_stock_price')
+
+    # Проверка на наличие ключа API
     if not api_key_stock:
         logger.error("API_KEY не установлен.")
         raise ValueError("API_KEY не установлен.")
+
+    if api_key_stock is None:
+        api_key_stock = os.getenv('API_KEY_stock_price')
+
+    if api_key_stock:
+        logger.info("API_KEY_stock_price загружен.")  # Логируем, что ключ загружен
+
+
 
     stock_prices = []
 
@@ -143,6 +156,9 @@ def get_stock_price(symbols: List[str], api_key_stock: Optional[str] = None) -> 
             })
 
     return stock_prices
+
+
+
 
 # Применяем декоратор
 @report_to_file()
