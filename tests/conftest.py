@@ -1,5 +1,6 @@
+import json
 from typing import List, Dict, Any
-
+import os
 import pytest
 import pandas as pd
 from unittest.mock import patch, MagicMock
@@ -39,3 +40,47 @@ def sample_transactions() -> List[Dict[str, Any]]:
 def mock_requests_get():
     with patch('src.utils.requests.get') as mock_get:
         yield mock_get
+
+
+# Фикстуры для функции `analyze_transactions`
+@pytest.fixture
+def transactions_data():
+    return [
+        {'Категория': 'Еда', 'Сумма операции': -100},
+        {'Категория': 'Транспорт', 'Сумма операции': -50},
+        {'Категория': 'Зарплата', 'Сумма операции': 1000},
+        {'Категория': 'Инвестиции', 'Сумма операции': 200},
+        {'Категория': 'Бонусы (включая кэшбэк)', 'Сумма операции': 50},
+    ]
+
+
+# Фикстуры для функции `main`
+@pytest.fixture
+def mock_1_load_data_from_excel():
+    with patch('src.utils.load_data_from_excel') as mock:
+        yield mock
+
+@pytest.fixture
+def mock_analyze_transactions():
+    with patch('src.utils.analyze_transactions') as mock:
+        yield mock
+
+@pytest.fixture
+def mock_get_currency_rates():
+    with patch('src.utils.get_currency_rates') as mock:
+        yield mock
+
+@pytest.fixture
+def mock_get_stock_price():
+    with patch('src.utils.get_stock_price') as mock:
+        yield mock
+
+@pytest.fixture
+def mock_json_dump():
+    with patch('json_dump') as mock:
+        yield mock
+
+@pytest.fixture
+def mock_open():
+    with patch('builtins.open', new_callable=MagicMock) as mock:
+        yield mock
