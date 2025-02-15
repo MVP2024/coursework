@@ -11,7 +11,7 @@ from src.utils import load_data_from_excel, analyze_transactions, get_currency_r
 # Настройка логгера для модуля utils
 logger = setup_logger(__name__)
 # Настройка логирования
-logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+# logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 # @report_to_file()
 def main(date_str: str, range_type: str = 'M') -> Dict[str, Any]:
