@@ -1,33 +1,51 @@
 import pytest
+import pandas as pd
+
 from src.utils import load_data_from_excel
 
 
-def test_load_data_from_excel_success(mock_load_data_from_excel, sample_excel_data):
-    # Настраиваем мок, чтобы он возвращал пример данных
-    mock_load_data_from_excel.return_value = sample_excel_data
+# Тест: Успешная загрузка данных из Excel
+def test_load_data_from_excel_success(tmpdir):
+    # Создаем временный Excel-файл
+    file_path = tmpdir.join("test_data.xlsx")
+    data = {
+        "A": [1, 2, 3],  # Простое название столбца
+        "B": ["X", "Y", "Z"]  # Простое название столбца
+    }
+    df = pd.DataFrame(data)
+    df.to_excel(file_path, index=False)
 
-    # Вызываем функцию
-    result = load_data_from_excel('fake_path.xlsx')
+    # Вызываем функцию и проверяем результат
+    result = load_data_from_excel(file_path)
+    expected = [
+        {"A": 1, "B": "X"},
+        {"A": 2, "B": "Y"},
+        {"A": 3, "B": "Z"}
+    ]
+    assert result == expected
 
-    # Проверяем, что результат соответствует ожидаемому
-    expected_result = sample_excel_data.to_dict(orient='records')
-    assert result == expected_result
-    mock_load_data_from_excel.assert_called_once_with('fake_path.xlsx', na_filter=True)
+# Тест: Файл не найден
+def test_load_data_from_excel_file_not_found():
+    # Пытаемся загрузить несуществующий файл
+    with pytest.raises(FileNotFoundError):
+        load_data_from_excel("non_existent_file.xlsx")
 
-def test_load_data_from_excel_file_not_found(mock_load_data_from_excel):
-    # Настраиваем мок, чтобы он вызывал исключение при попытке чтения файла
-    mock_load_data_from_excel.side_effect = FileNotFoundError("Файл не найден")
+# Тест: Замена NaN на 0
+def test_load_data_from_excel_replace_nan(tmpdir):
+    # Создаем временный Excel-файл с NaN
+    file_path = tmpdir.join("test_data.xlsx")
+    data = {
+        "A": [1, None, 3],  # Простое название столбца
+        "B": ["X", "Y", "Z"]  # Простое название столбца
+    }
+    df = pd.DataFrame(data)
+    df.to_excel(file_path, index=False)
 
-    # Вызываем функцию и проверяем, что она возвращает пустой список
-    result = load_data_from_excel('fake_path.xlsx')
-    assert result == []
-    mock_load_data_from_excel.assert_called_once_with('fake_path.xlsx', na_filter=True)
-
-def test_load_data_from_excel_other_exception(mock_load_data_from_excel):
-    # Настраиваем мок, чтобы он вызывал общее исключение
-    mock_load_data_from_excel.side_effect = Exception("Ошибка чтения")
-
-    # Вызываем функцию и проверяем, что она возвращает пустой список
-    result = load_data_from_excel('fake_path.xlsx')
-    assert result == []
-    mock_load_data_from_excel.assert_called_once_with('fake_path.xlsx', na_filter=True)
+    # Вызываем функцию и проверяем, что NaN заменены на 0
+    result = load_data_from_excel(file_path)
+    expected = [
+        {"A": 1, "B": "X"},
+        {"A": 0, "B": "Y"},
+        {"A": 3, "B": "Z"}
+    ]
+    assert result == expected

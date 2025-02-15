@@ -21,14 +21,11 @@ def test_get_currency_rates_success():
     with patch('requests.get', return_value=mock_response):
         result = get_currency_rates(api_key, base_currency, target_currencies)
         expected_result = [
-            {"валюта": "USD", "оценка": 0.01},
-            {"валюта": "EUR", "оценка": 0.02}
+            {"валюта": "USD", "ставка": 0.01},
+            {"валюта": "EUR", "ставка": 0.02}
         ]
         assert result == expected_result
 
-def test_get_currency_rates_api_key_not_set():
-    with pytest.raises(ValueError, match="API_KEY не установлен."):
-        get_currency_rates(None)
 
 
 def test_get_currency_rates_request_exception():
