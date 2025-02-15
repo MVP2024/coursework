@@ -93,10 +93,13 @@ def test_main_invalid_date_format_empty():
     with pytest.raises(ValueError, match="time data '' does not match format '%Y-%m-%d'"):
         main("", "M")
 
+
 def test_main_invalid_date_format_nonexistent():
     """Тест с несуществующей датой."""
-    with pytest.raises(ValueError, match="time data '2023-02-30' does not match format '%Y-%m-%d'"):
+    with pytest.raises(ValueError) as excinfo:
         main("2023-02-30", "M")
+    assert "day is out of range for month" in str(excinfo.value)
+
 
 def test_main_range_type_week():
     """Тест с диапазоном 'W'."""
