@@ -3,14 +3,24 @@ import os
 import logging
 from datetime import datetime
 import functools
+from typing import Callable, Any, Optional, Tuple
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
 
-def report_to_file(filename=None):
-    def decorator(func):
+def report_to_file(filename: Optional[str] = None) -> Callable:
+    """Декоратор для сохранения результата функции в JSON-файл.
+
+    Args:
+        filename (Optional[str]): Имя файла для сохранения результата.
+                                  Если не указано, будет сгенерировано автоматически.
+
+    Returns:
+        Callable: Обернутая функция, которая сохраняет результат в файл.
+    """
+    def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
-        def wrapper(*args, **kwargs):
+        def wrapper(*args: Any, **kwargs: Any) -> Any:
             # Определяем директорию для сохранения
             output_directory = os.path.join(os.path.dirname(__file__), 'decorator_output')
             os.makedirs(output_directory, exist_ok=True)  # Создаем директорию, если она не существует
@@ -47,3 +57,4 @@ def report_to_file(filename=None):
             return result
         return wrapper
     return decorator
+

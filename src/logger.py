@@ -2,6 +2,18 @@ import logging
 import os
 
 def setup_logger(module_name: str, log_files: str = 'log_files') -> logging.Logger:
+    """Настраивает логгер для указанного модуля.
+
+    Args:
+        module_name (str): Имя модуля, для которого настраивается логгер.
+        log_files (str): Имя директории для хранения файлов логов. По умолчанию 'log_files'.
+
+    Returns:
+        logging.Logger: Настроенный логгер для указанного модуля.
+
+    Эта функция создает директорию для логов, если она не существует,
+    настраивает обработчик для записи логов в файл и конфигурирует формат логирования.
+    """
     # Определяем абсолютный путь к директории src
     src_dir = os.path.dirname(__file__)
     logs_dir = os.path.join(src_dir, log_files)
@@ -25,3 +37,4 @@ def setup_logger(module_name: str, log_files: str = 'log_files') -> logging.Logg
     logger.addHandler(file_handler)
 
     return logger
+

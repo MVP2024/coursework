@@ -18,7 +18,17 @@ load_dotenv()
 # Применяем декоратор
 @report_to_file()
 def load_data_from_excel(file_path: str) -> List[Dict[str, Any]]:
-    """Загрузка данных из Excel и преобразование в список словарей."""
+    """Загрузка данных из Excel и преобразование в список словарей.
+
+    Args:
+        file_path (str): Путь к файлу Excel.
+
+    Returns:
+        List[Dict[str, Any]]: Список словарей, представляющих данные из Excel.
+
+    Raises:
+        FileNotFoundError: Если файл не найден.
+    """
     logger.info(f"Загрузка данных из Excel: {file_path}")
 
     # Проверка существования файла
@@ -40,7 +50,19 @@ def load_data_from_excel(file_path: str) -> List[Dict[str, Any]]:
 # Применяем декоратор
 @report_to_file()
 def get_currency_rates(api_key_currency: Optional[str] = None, base_currency: str = "RUB", target_currencies: Optional[List[str]] = None) -> List[Dict[str, Any]]:
-    """Загружает данные о курсе валют с API и возвращает список словарей."""
+    """Загружает данные о курсе валют с API и возвращает список словарей.
+
+    Args:
+        api_key_currency (Optional[str]): API-ключ для доступа к курсам валют.
+        base_currency (str): Базовая валюта для конвертации. По умолчанию "RUB".
+        target_currencies (Optional[List[str]]): Список целевых валют для получения курсов.
+
+    Returns:
+        List[Dict[str, Any]]: Список словарей с курсами валют.
+
+    Raises:
+        ValueError: Если API_KEY не установлен или не удалось получить курсы валют.
+    """
     logger.info("Получение курсов валют.")
 
     # Если API-ключ не передан, пытаемся загрузить его из переменных окружения
@@ -86,13 +108,21 @@ def get_currency_rates(api_key_currency: Optional[str] = None, base_currency: st
         raise ValueError("Не удалось получить курсы валют.") from e
 
 
-
-
-
 # Применяем декоратор
 @report_to_file()
 def get_stock_price(symbols: List[str], api_key_stock: Optional[str] = None) -> List[Dict[str, Any]]:
-    """Получение текущей стоимости акций по списку символов с использованием Alpha Vantage API."""
+    """Получение текущей стоимости акций по списку символов с использованием Alpha Vantage API.
+
+    Args:
+        symbols (List[str]): Список символов акций для получения цен.
+        api_key_stock (Optional[str]): API-ключ для доступа к данным акций.
+
+    Returns:
+        List[Dict[str, Any]]: Список словарей с текущими ценами акций.
+
+    Raises:
+        ValueError: Если API_KEY не установлен или не удалось получить данные акций.
+    """
     logger.info("Получение цен акций.")
 
     # Если API-ключ не передан, пытаемся загрузить его из переменных окружения
@@ -139,11 +169,17 @@ def get_stock_price(symbols: List[str], api_key_stock: Optional[str] = None) -> 
     return stock_prices
 
 
-
 # Применяем декоратор
 @report_to_file()
 def analyze_transactions(transactions: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """Анализ транзакций и формирование отчета."""
+    """Анализ транзакций и формирование отчета.
+
+    Args:
+        transactions (List[Dict[str, Any]]): Список транзакций для анализа.
+
+    Returns:
+        Dict[str, Any]: Словарь с результатами анализа, включая общие суммы расходов и доходов, а также категории.
+    """
     logger.info("Начало анализа транзакций.")
     category_totals = defaultdict(float)
     total_expenses = 0
@@ -204,30 +240,3 @@ def analyze_transactions(transactions: List[Dict[str, Any]]) -> Dict[str, Any]:
             ]
         }
     }
-
-# # Применяем декоратор
-# @report_to_file()
-# def filter_transactions(transactions: List[Dict[str, Any]], date: str, range_type: str) -> List[Dict[str, Any]]:
-#     logger.info("Начало фильтрации транзакций.")
-#     filtered_transactions = []
-#     date = datetime.strptime(date, "%Y-%m-%d")
-#
-#     # Определяем начальную и конечную даты в зависимости от типа диапазона
-#     if range_type == 'M':
-#         start_date = date.replace(day=1)
-#         end_date = (start_date + timedelta(days=31)).replace(day=1) - timedelta(days=1)
-#     elif range_type == 'Y':
-#         start_date = date.replace(month=1, day=1)
-#         end_date = date.replace(month=12, day=31)
-#     else:
-#         start_date = date
-#         end_date = date
-#
-#     # Фильтруем данные по диапазону дат
-#     filtered_transactions = [
-#         transaction for transaction in transactions
-#         if start_date <= datetime.strptime(transaction["Дата операции"], "%d.%m.%Y %H:%M:%S") <= end_date
-#     ]
-#
-#     logger.info(f"Фильтрация завершена. Найдено {len(filtered_transactions)} транзакций.")
-#     return filtered_transactions
