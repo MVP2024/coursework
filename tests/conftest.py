@@ -1,4 +1,8 @@
-import json
+import pytest
+import pandas as pd
+from unittest.mock import patch
+from src.views import main
+
 from typing import List, Dict, Any
 import os
 import pytest
@@ -56,31 +60,26 @@ def transactions_data():
 
 # Фикстуры для функции `main`
 @pytest.fixture
+def mock_env_vars():
+    with patch.dict('os.environ', {'API_KEY_currency': 'test_key', 'API_KEY_stock_price': 'test_key'}):
+        yield
+
+@pytest.fixture
 def mock_1_load_data_from_excel():
-    with patch('src.utils.load_data_from_excel') as mock:
-        yield mock
+    with patch('src.utils.load_data_from_excel', return_value=[{"Дата операции": "01.01.2023 00:00:00", "Сумма операции": 100}]):
+        yield
 
 @pytest.fixture
 def mock_analyze_transactions():
-    with patch('src.utils.analyze_transactions') as mock:
-        yield mock
+    with patch('src.utils.analyze_transactions', return_value={"total": 100}):
+        yield
 
 @pytest.fixture
 def mock_get_currency_rates():
-    with patch('src.utils.get_currency_rates') as mock:
-        yield mock
+    with patch('src.utils.get_currency_rates', return_value={"USD": 75.0, "EUR": 85.0, "CNY": 12.0}):
+        yield
 
 @pytest.fixture
 def mock_get_stock_price():
-    with patch('src.utils.get_stock_price') as mock:
-        yield mock
-
-@pytest.fixture
-def mock_json_dump():
-    with patch('json_dump') as mock:
-        yield mock
-
-@pytest.fixture
-def mock_open():
-    with patch('builtins.open', new_callable=MagicMock) as mock:
-        yield mock
+    with patch('src.utils.get_stock_price', return_value={"AAPL": 150.0, "AMZN": 3000.0}):
+        yield
