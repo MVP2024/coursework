@@ -7,8 +7,7 @@ from datetime import datetime, timedelta
 from src.morning_day_night import get_greeting
 from src.reports import spending_by_category
 from src.services import find_personal_transfers
-from src.utils import load_data_from_excel, analyze_transactions, get_currency_rates, get_stock_price, \
-    filter_transactions
+from src.utils import load_data_from_excel, analyze_transactions, get_currency_rates, get_stock_price
 
 # from src.utils import get_date_range
 
@@ -26,7 +25,6 @@ file_path = os.path.join(os.path.dirname(__file__), "..", "data", "operations.xl
 # print(load_data_from_excel(file_path))
 
 transactions = load_data_from_excel(file_path)
-
 # Переводим в DataFrame
 transactions_df = pd.DataFrame(transactions)
 
@@ -39,11 +37,8 @@ print(json.dumps(result, ensure_ascii=False, indent=4))
 """Функция для вывода курса валют"""
 # Укажите валюты, которые хотите вывести
 target_currencies = ["EUR", "USD"]  # Замените на нужные валюты
-
-
 # Вызываем функцию для получения курсов относительно базовой валюты
 rates = get_currency_rates(base_currency="RUB", target_currencies=target_currencies)
-
 # Выводим курсы для указанных валют
 print(rates)
 
@@ -93,5 +88,5 @@ print(f"Отфильтрованные транзакции по категор�
       f"Итоговая сумма за указанный период: \n{total_spending}.")
 
 
-"""Функция для получения данных по указанному диапазону дат"""
-print(filter_transactions(transactions, "2020-10-10", "M"))
+# """Функция для получения данных по указанному диапазону дат"""
+# print(filter_transactions(transactions, "2020-10-10", "M"))
