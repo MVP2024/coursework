@@ -37,21 +37,44 @@ def get_greeting() -> str:
 
 
 """Функция для будущей фильтрации транзакция по диапазону дат"""
-def filter_transactions(transactions: List[Dict[str, Any]], date: str, range_type: str) -> List[Dict[str, Any]]:
-    logger.info("Начало фильтрации транзакций.")
-    filtered_transactions = []
-    date = datetime.strptime(date, "%Y-%m-%d")
+def filter_transactions(transactions: List[Dict[str, Any]], date_str: str, range_type: str) -> List[Dict[str, Any]]:
+    """
+    Фильтрует транзакции по заданному диапазону дат.
 
-    # Определяем начальную и конечную даты в зависимости от типа диапазона
-    if range_type == 'M':
+    Параметры:
+        transactions (List[Dict[str, Any]]): Список транзакций, где каждая транзакция представлена в виде словаря.
+        date_str (str): Дата в формате 'YYYY-MM-DD', до которой будут фильтроваться транзакции.
+        range_type (str): Тип диапазона для фильтрации. Допустимые значения:
+            - 'W': неделя (от понедельника до указанной даты)
+            - 'M': месяц (от 1 числа месяца до указанной даты)
+            - 'Y': год (от 1 января года до указанной даты)
+            - 'ALL': все транзакции до указанной даты
+
+    Возвращает:
+        List[Dict[str, Any]]: Список отфильтрованных транзакций, соответствующих заданному диапазону дат.
+    """
+    logger.info("Преобразуем строку с датой в объект datetime.")
+    date = datetime.strptime(date_str, "%Y-%m-%d")
+
+    logger.info("Определяем начальную и конечную даты в зависимости от range_type.")
+    if range_type == 'W':
+        # Начальная дата - первый день недели (понедельник)
+        start_date = date - timedelta(days=date.weekday())
+        end_date = date  # Конечная дата - указанная дата
+    elif range_type == 'M':
+        # Начальная дата - первое число месяца
         start_date = date.replace(day=1)
-        end_date = (start_date + timedelta(days=31)).replace(day=1) - timedelta(days=1)
+        end_date = date  # Конечная дата - указанная дата
     elif range_type == 'Y':
+        # Начальная дата - первое число года
         start_date = date.replace(month=1, day=1)
-        end_date = date.replace(month=12, day=31)
+        end_date = date  # Конечная дата - указанная дата
+    elif range_type == 'ALL':
+        # Начальная дата - минимально возможная дата
+        start_date = datetime.min
+        end_date = date  # Конечная дата - указанная дата
     else:
-        start_date = date
-        end_date = date
+        raise ValueError("Недопустимое значение range_type. Допустимые значения: 'W', 'M', 'Y', 'ALL'.")
 
     # Фильтруем данные по диапазону дат
     filtered_transactions = [
