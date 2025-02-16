@@ -1,7 +1,8 @@
 import logging
 import os
 
-def setup_logger(module_name: str, log_files: str = 'log_files') -> logging.Logger:
+
+def setup_logger(module_name: str, log_files: str = "log_files") -> logging.Logger:
     """Настраивает логгер для указанного модуля.
 
     Args:
@@ -37,4 +38,3 @@ def setup_logger(module_name: str, log_files: str = 'log_files') -> logging.Logg
     logger.addHandler(file_handler)
 
     return logger
-

@@ -1,20 +1,22 @@
 import json
 import os
+
 import pandas as pd
-from src.morning_day_night import get_greeting, filter_transactions
+
+from src.morning_day_night import filter_transactions, get_greeting
 from src.reports import spending_by_category
 from src.services import find_personal_transfers
-from src.utils import load_data_from_excel, analyze_transactions, get_currency_rates, get_stock_price
+from src.utils import analyze_transactions, get_currency_rates, get_stock_price, load_data_from_excel
 
 # from src.utils import get_date_range
+
 
 """ Вывод всех функций. """
 if __name__ == "__main__":
 
-
     """Функция, которая определяет время в данный момент и возвращает приветствие"""
-    name = 'Bobr'
-    print(f'{get_greeting()}, {name}!')
+    name = "Bobr"
+    print(f"{get_greeting()}, {name}!")
 
     """Вызов функции для считывания файла формата xlsx."""
 file_path = os.path.join(os.path.dirname(__file__), "..", "data", "operations.xlsx")  # Путь к файлу в директории data
@@ -76,12 +78,14 @@ print(result)
 
 """Функция для получения трат по заданной категории за последние три месяца"""
 # Изменяем вызов функции, чтобы получить и DataFrame, и итоговую сумму
-filtered_transactions_df, total_spending = spending_by_category(transactions_df, 'Топливо', "15.08.2018")
+filtered_transactions_df, total_spending = spending_by_category(transactions_df, "Топливо", "15.08.2018")
 # print(filtered_transactions_df)
 # print(total_spending)
-print(f"Отфильтрованные транзакции по категории 'Топливо':"
-      f"\n{filtered_transactions_df.to_string(index=False)}, \n"
-      f"Итоговая сумма за указанный период: \n{total_spending}.")
+print(
+    f"Отфильтрованные транзакции по категории 'Топливо':"
+    f"\n{filtered_transactions_df.to_string(index=False)}, \n"
+    f"Итоговая сумма за указанный период: \n{total_spending}."
+)
 
 """Функция для получения данных по указанному диапазону дат"""
 print(filter_transactions(transactions, "2020-10-10", "M"))

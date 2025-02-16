@@ -1,11 +1,7 @@
-import logging
-import os
 from datetime import datetime, timedelta
-from typing import List, Dict, Any
+from typing import Any, Dict, List
 
-from src.decorators import report_to_file
-from src.utils import load_data_from_excel, analyze_transactions, logger
-
+from src.utils import logger
 
 
 def get_greeting() -> str:
@@ -36,7 +32,6 @@ def get_greeting() -> str:
         return "Доброй ночи"
 
 
-"""Функция для будущей фильтрации транзакция по диапазону дат"""
 def filter_transactions(transactions: List[Dict[str, Any]], date_str: str, range_type: str) -> List[Dict[str, Any]]:
     """
     Фильтрует транзакции по заданному диапазону дат.
@@ -57,19 +52,19 @@ def filter_transactions(transactions: List[Dict[str, Any]], date_str: str, range
     date = datetime.strptime(date_str, "%Y-%m-%d")
 
     logger.info("Определяем начальную и конечную даты в зависимости от range_type.")
-    if range_type == 'W':
+    if range_type == "W":
         # Начальная дата - первый день недели (понедельник)
         start_date = date - timedelta(days=date.weekday())
         end_date = date  # Конечная дата - указанная дата
-    elif range_type == 'M':
+    elif range_type == "M":
         # Начальная дата - первое число месяца
         start_date = date.replace(day=1)
         end_date = date  # Конечная дата - указанная дата
-    elif range_type == 'Y':
+    elif range_type == "Y":
         # Начальная дата - первое число года
         start_date = date.replace(month=1, day=1)
         end_date = date  # Конечная дата - указанная дата
-    elif range_type == 'ALL':
+    elif range_type == "ALL":
         # Начальная дата - минимально возможная дата
         start_date = datetime.min
         end_date = date  # Конечная дата - указанная дата
@@ -78,9 +73,17 @@ def filter_transactions(transactions: List[Dict[str, Any]], date_str: str, range
 
     # Фильтруем данные по диапазону дат
     filtered_transactions = [
-        transaction for transaction in transactions
+        transaction
+        for transaction in transactions
         if start_date <= datetime.strptime(transaction["Дата операции"], "%d.%m.%Y %H:%M:%S") <= end_date
     ]
 
     logger.info(f"Фильтрация завершена. Найдено {len(filtered_transactions)} транзакций.")
+
     return filtered_transactions
+
+
+def get_date_range(start_date, end_date):
+    """Возвращает список дат в диапазоне от start_date до end_date."""
+    delta = end_date - start_date
+    return [start_date + timedelta(days=i) for i in range(delta.days + 1)]

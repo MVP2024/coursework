@@ -1,20 +1,18 @@
 import unittest
-from unittest.mock import patch, Mock
-from src.utils import get_stock_price
+from unittest.mock import Mock, patch
+
 import requests
+
+from src.utils import get_stock_price
 
 
 class TestGetStockPrice(unittest.TestCase):
 
-    @patch('src.utils.requests.get')
+    @patch("src.utils.requests.get")
     def test_get_stock_price_success(self, mock_get):
         # Настройка имитации ответа от API
         mock_response = Mock()
-        mock_response.json.return_value = {
-            "Global Quote": {
-                "05. price": "150.00"
-            }
-        }
+        mock_response.json.return_value = {"Global Quote": {"05. price": "150.00"}}
         mock_response.raise_for_status = Mock()
         mock_get.return_value = mock_response
 
@@ -23,13 +21,10 @@ class TestGetStockPrice(unittest.TestCase):
         result = get_stock_price(symbols, api_key_stock="test_api_key")
 
         # Проверка результата
-        expected_result = [
-            {"акция": "AAPL", "цена": 150.00},
-            {"акция": "GOOGL", "цена": 150.00}
-        ]
+        expected_result = [{"акция": "AAPL", "цена": 150.00}, {"акция": "GOOGL", "цена": 150.00}]
         self.assertEqual(result, expected_result)
 
-    @patch('src.utils.requests.get')
+    @patch("src.utils.requests.get")
     def test_get_stock_price_request_exception(self, mock_get):
         # Настройка имитации исключения при запросе
         mock_get.side_effect = requests.exceptions.RequestException("Ошибка запроса")
@@ -39,12 +34,10 @@ class TestGetStockPrice(unittest.TestCase):
         result = get_stock_price(symbols, api_key_stock="test_api_key")
 
         # Проверка результата
-        expected_result = [
-            {"акция": "AAPL", "цена": "Ошибка при получении данных"}
-        ]
+        expected_result = [{"акция": "AAPL", "цена": "Ошибка при получении данных"}]
         self.assertEqual(result, expected_result)
 
-    @patch.dict('os.environ', {'API_KEY_stock_price': ''})  # Устанавливаем пустую переменную окружения
+    @patch.dict("os.environ", {"API_KEY_stock_price": ""})  # Устанавливаем пустую переменную окружения
     def test_get_stock_price_not_api_key(self):
         # Проверка на отсутствие API ключа, когда он не передан
         with self.assertRaises(ValueError) as context:
