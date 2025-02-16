@@ -5,7 +5,7 @@ import pandas as pd
 
 from src.morning_day_night import filter_transactions, get_greeting
 from src.reports import spending_by_category
-from src.services import find_personal_transfers
+from src.services import find_personal_transfers, investment_bank
 from src.utils import analyze_transactions, get_currency_rates, get_stock_price, load_data_from_excel
 
 # from src.utils import get_date_range
@@ -59,6 +59,12 @@ print(stock_prices)
 result = find_personal_transfers(transactions)
 print(result)
 
+
+"""Функция, которая рассчитывает сумму, отложенную в «Инвесткопилку» за указанный месяц"""
+result_invest = investment_bank("2020-10", transactions, 10)
+
+# Вывод результата
+print(result_invest)
 
 """Для отладки"""
 # print(transactions_df.head())  # Вывод первых нескольких строк DataFrame
