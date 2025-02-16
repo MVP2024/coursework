@@ -1,10 +1,7 @@
 import json
 import os
 import pandas as pd
-
-from datetime import datetime, timedelta
-
-from src.morning_day_night import get_greeting
+from src.morning_day_night import get_greeting, filter_transactions
 from src.reports import spending_by_category
 from src.services import find_personal_transfers
 from src.utils import load_data_from_excel, analyze_transactions, get_currency_rates, get_stock_price
@@ -18,7 +15,6 @@ if __name__ == "__main__":
     """Функция, которая определяет время в данный момент и возвращает приветствие"""
     name = 'Bobr'
     print(f'{get_greeting()}, {name}!')
-
 
     """Вызов функции для считывания файла формата xlsx."""
 file_path = os.path.join(os.path.dirname(__file__), "..", "data", "operations.xlsx")  # Путь к файлу в директории data
@@ -87,6 +83,5 @@ print(f"Отфильтрованные транзакции по категор�
       f"\n{filtered_transactions_df.to_string(index=False)}, \n"
       f"Итоговая сумма за указанный период: \n{total_spending}.")
 
-
-# """Функция для получения данных по указанному диапазону дат"""
-# print(filter_transactions(transactions, "2020-10-10", "M"))
+"""Функция для получения данных по указанному диапазону дат"""
+print(filter_transactions(transactions, "2020-10-10", "M"))

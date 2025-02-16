@@ -3,10 +3,11 @@ import os
 import logging
 from datetime import datetime
 import functools
-from typing import Callable, Any, Optional, Tuple
+from typing import Callable, Any, Optional
 
 # Настройка логирования
 logging.basicConfig(level=logging.INFO)
+
 
 def report_to_file(filename: Optional[str] = None) -> Callable:
     """Декоратор для сохранения результата функции в JSON-файл.
@@ -42,7 +43,8 @@ def report_to_file(filename: Optional[str] = None) -> Callable:
 
                 # Запись результата в JSON-файл
                 if isinstance(result, tuple):
-                    result_to_save = (result[0].to_dict(orient='records'), result[1])  # Преобразуем DataFrame в список словарей
+                    # Преобразуем DataFrame в список словарей
+                    result_to_save = (result[0].to_dict(orient='records'), result[1])
                 else:
                     result_to_save = result
 
@@ -57,4 +59,3 @@ def report_to_file(filename: Optional[str] = None) -> Callable:
             return result
         return wrapper
     return decorator
-

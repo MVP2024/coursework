@@ -6,7 +6,6 @@ import requests
 
 class TestGetStockPrice(unittest.TestCase):
 
-
     @patch('src.utils.requests.get')
     def test_get_stock_price_success(self, mock_get):
         # Настройка имитации ответа от API
@@ -29,7 +28,6 @@ class TestGetStockPrice(unittest.TestCase):
             {"акция": "GOOGL", "цена": 150.00}
         ]
         self.assertEqual(result, expected_result)
-
 
     @patch('src.utils.requests.get')
     def test_get_stock_price_request_exception(self, mock_get):

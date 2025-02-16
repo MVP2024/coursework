@@ -1,6 +1,6 @@
 import pytest
 from src.utils import analyze_transactions
-from collections import defaultdict
+
 
 @pytest.mark.parametrize("input_data, expected", [
     ([], {
@@ -46,6 +46,7 @@ from collections import defaultdict
 def test_analyze_transactions(input_data, expected):
     result = analyze_transactions(input_data)
     assert result == expected
+
 
 def test_analyze_transactions_mixed(transactions_data):
     result = analyze_transactions(transactions_data)

@@ -1,13 +1,7 @@
 import pytest
 import pandas as pd
 from unittest.mock import patch
-from src.views import main
-
 from typing import List, Dict, Any
-import os
-import pytest
-import pandas as pd
-from unittest.mock import patch, MagicMock
 
 
 # Фикстура для функции `load_data_from_excel`
@@ -15,6 +9,7 @@ from unittest.mock import patch, MagicMock
 def mock_load_data_from_excel():
     with patch('src.utils.pd.read_excel') as mock_read_excel:
         yield mock_read_excel
+
 
 @pytest.fixture
 def sample_excel_data():
@@ -64,20 +59,25 @@ def mock_env_vars():
     with patch.dict('os.environ', {'API_KEY_currency': 'test_key', 'API_KEY_stock_price': 'test_key'}):
         yield
 
+
 @pytest.fixture
 def mock_1_load_data_from_excel():
-    with patch('src.utils.load_data_from_excel', return_value=[{"Дата операции": "01.01.2023 00:00:00", "Сумма операции": 100}]):
+    with patch('src.utils.load_data_from_excel', return_value=[{"Дата операции": "01.01.2023 00:00:00",
+                                                                "Сумма операции": 100}]):
         yield
+
 
 @pytest.fixture
 def mock_analyze_transactions():
     with patch('src.utils.analyze_transactions', return_value={"total": 100}):
         yield
 
+
 @pytest.fixture
 def mock_get_currency_rates():
     with patch('src.utils.get_currency_rates', return_value={"USD": 75.0, "EUR": 85.0, "CNY": 12.0}):
         yield
+
 
 @pytest.fixture
 def mock_get_stock_price():

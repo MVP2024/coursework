@@ -1,6 +1,5 @@
 import pytest
 import pandas as pd
-
 from src.utils import load_data_from_excel
 
 
@@ -24,11 +23,13 @@ def test_load_data_from_excel_success(tmpdir):
     ]
     assert result == expected
 
+
 # Тест: Файл не найден
 def test_load_data_from_excel_file_not_found():
     # Пытаемся загрузить несуществующий файл
     with pytest.raises(FileNotFoundError):
         load_data_from_excel("non_existent_file.xlsx")
+
 
 # Тест: Замена NaN на 0
 def test_load_data_from_excel_replace_nan(tmpdir):

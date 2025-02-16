@@ -1,7 +1,6 @@
-import pytest
 from unittest.mock import patch, Mock
 from src.utils import get_currency_rates
-import requests  # Импортируем requests
+
 
 def test_get_currency_rates_success():
     api_key = "fake_api_key"
@@ -25,7 +24,6 @@ def test_get_currency_rates_success():
             {"валюта": "EUR", "ставка": 0.02}
         ]
         assert result == expected_result
-
 
 
 def test_get_currency_rates_request_exception():
