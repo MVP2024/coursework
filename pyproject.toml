@@ -1,0 +1,60 @@
+[tool.poetry]
+name = "moneymetrics"
+version = "0.1.0"
+description = ""
+authors = ["Valery Medvedev <walery.medvedev@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.13"
+requests = "^2.32.3"
+mypy = "^1.14.1"
+isort = "^6.0.0"
+black = "^25.1.0"
+flake8 = "^7.1.1"
+pandas = "^2.2.3"
+python-dotenv = "^1.0.1"
+data = "^0.4"
+
+
+[tool.poetry.group.lint.dependencies]
+mypy = "^1.14.1"
+isort = "^6.0.0"
+black = "^25.1.0"
+flake8 = "^7.1.1"
+
+
+[tool.poetry.group.dev.dependencies]
+pytest-cov = "^6.0.0"
+pytest = "^8.3.4"
+types-requests = "^2.32.0.20241016"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+
+[tool.black]
+line_length = 119
+exclude = '''/(
+    \.git
+| \.idea
+| \.mypy_cache
+| \.venv
+| \.README.md
+)/
+'''
+
+[tool.isort]
+line_length = 119
+
+[mypy]
+disallow_untyped_defs = true
+warn_return_any = true
+exclude = '''venv
+'''
+
+[tool.coverage.run]
+omit = [
+    "src/check.py",
+]
