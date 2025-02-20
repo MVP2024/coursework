@@ -1,6 +1,7 @@
+import json
 from datetime import datetime, timedelta
 from typing import Optional
-import json
+
 import pandas as pd
 
 from src.decorators import report_to_file
@@ -11,11 +12,7 @@ logger = setup_logger(__name__)
 
 
 @report_to_file()
-def spending_by_category(
-    transactions: pd.DataFrame,
-    category: str,
-    date: Optional[str] = None
-) -> str:
+def spending_by_category(transactions: pd.DataFrame, category: str, date: Optional[str] = None) -> str:
     """
     Рассчитывает траты по определенной категории за последние 3 месяца.
 
@@ -60,11 +57,10 @@ def spending_by_category(
     logger.info(f"Общая сумма расходов по категории '{category}': {total_spending}")
 
     # Преобразуем DataFrame в список словарей
-    transactions_list = filtered_transactions.to_dict(orient='records')
+    transactions_list = filtered_transactions.to_dict(orient="records")
     logger.debug(f"Найдено транзакций: {len(transactions_list)}")
 
     # Возвращаем JSON-строку
-    return json.dumps({
-        "transactions": transactions_list,
-        "total_spending": total_spending
-    }, ensure_ascii=False, indent=4)
+    return json.dumps(
+        {"transactions": transactions_list, "total_spending": total_spending}, ensure_ascii=False, indent=4
+    )

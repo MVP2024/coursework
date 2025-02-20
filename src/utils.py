@@ -40,7 +40,7 @@ def load_data_from_excel(file_path: str) -> List[Dict[Hashable, Any]]:
         raise FileNotFoundError(f"Файл не найден: {file_path}")
 
     # Проверка расширения файла
-    if not file_path.lower().endswith(('.xls', '.xlsx', '.xlsm', '.xlsb')):
+    if not file_path.lower().endswith((".xls", ".xlsx", ".xlsm", ".xlsb")):
         logger.error(f"Некорректный формат файла: {file_path}")
         raise ValueError("Поддерживаются только файлы Excel")
 
@@ -67,10 +67,7 @@ def load_data_from_excel(file_path: str) -> List[Dict[Hashable, Any]]:
         raise ValueError(f"Отсутствуют обязательные столбцы: {missing_columns}")
 
     # Заменяем NaN на 0 или пустые значения
-    df.fillna(value={
-        "Категория": "Без категории",
-        "Сумма операции": 0
-    }, inplace=True)
+    df.fillna(value={"Категория": "Без категории", "Сумма операции": 0}, inplace=True)
 
     # Преобразуем названия столбцов в строки
     df.columns = df.columns.astype(str)
@@ -82,9 +79,7 @@ def load_data_from_excel(file_path: str) -> List[Dict[Hashable, Any]]:
 # Применяем декоратор
 @report_to_file()
 def get_currency_rates(
-    api_key_currency: Optional[str] = None,
-    base_currency: str = "RUB",
-    target_currencies: Optional[List[str]] = None
+    api_key_currency: Optional[str] = None, base_currency: str = "RUB", target_currencies: Optional[List[str]] = None
 ) -> List[Dict[str, Any]]:
     """
     Расширенное получение курсов валют с улучшенной обработкой ошибок.
@@ -92,11 +87,7 @@ def get_currency_rates(
     logger.info("Начало получения курсов валют.")
 
     # Расширенная логика получения API-ключа
-    api_key_currency = (
-        api_key_currency or
-        os.getenv("API_KEY_currency") or
-        os.getenv("CURRENCY_API_KEY")
-    )
+    api_key_currency = api_key_currency or os.getenv("API_KEY_currency") or os.getenv("CURRENCY_API_KEY")
 
     if not api_key_currency:
         logger.error("Не найден API-ключ для получения курсов валют.")
@@ -105,7 +96,7 @@ def get_currency_rates(
     # URL с поддержкой различных API
     url_templates = [
         f"https://v6.exchangerate-api.com/v6/{api_key_currency}/latest/{base_currency}",
-        f"https://openexchangerates.org/api/latest.json?app_id={api_key_currency}"
+        f"https://openexchangerates.org/api/latest.json?app_id={api_key_currency}",
     ]
 
     for url in url_templates:
@@ -131,9 +122,7 @@ def get_currency_rates(
                 ]
             else:
                 currency_rates = [
-                    {"валюта": currency, "ставка": round(1 / rate, 2)}
-                    for currency, rate in rates.items()
-                    if rate > 0
+                    {"валюта": currency, "ставка": round(1 / rate, 2)} for currency, rate in rates.items() if rate > 0
                 ]
 
             return currency_rates
@@ -149,6 +138,27 @@ def get_currency_rates(
 # Применяем декоратор
 @report_to_file()
 def get_stock_price(symbols: List[str], api_key_stock: Optional[str] = None) -> List[Dict[str, Any]]:
+    """
+    Получает текущие цены акций для указанных символов.
+
+    Args:
+        symbols (List[str]): Список символов акций для получения цен.
+        api_key_stock (Optional[str], optional): API-ключ для сервиса получения цен акций.
+            Если не указан, будет использован ключ из переменных окружения.
+
+    Returns:
+        List[Dict[str, Any]]: Список словарей с ценами акций, где каждый словарь содержит:
+            - "акция": символ акции
+            - "цена": текущая цена или сообщение об ошибке
+
+    Raises:
+        ValueError: Если API-ключ не установлен.
+
+    Описание:
+        - Использует сервис Alpha Vantage для получения котировок
+        - Обрабатывает возможные ошибки при получении данных
+        - Возвращает цену или сообщение о недоступности данных
+    """
     logger.info("Получение цен акций.")
 
     # Если API-ключ не передан, пытаемся загрузить его из переменных окружения
@@ -197,6 +207,24 @@ def get_stock_price(symbols: List[str], api_key_stock: Optional[str] = None) -> 
 # Применяем декоратор
 @report_to_file()
 def analyze_transactions(transactions: List[Dict[str, Any]]) -> Dict[str, Any]:
+    """
+    Анализирует список транзакций и формирует сводную информацию о доходах и расходах.
+
+    Args:
+        transactions (List[Dict[str, Any]]): Список транзакций для анализа.
+
+    Returns:
+        Dict[str, Any]: Словарь с информацией о расходах и доходах, содержащий:
+            - "Расходы": общая сумма и список основных категорий расходов
+            - "Доходы": общий доход и категории доходов
+
+    Описание:
+        - Обрабатывает транзакции, игнорируя некорректные или неполные записи
+        - Группирует расходы по категориям
+        - Выделяет до 7 основных категорий расходов
+        - Объединяет остальные категории в "Остальные"
+        - Разделяет доходы на "Пополнения" и "Бонусы"
+    """
     logger.info("Начало анализа транзакций.")
     category_totals: defaultdict[str, float] = defaultdict(float)
     total_expenses: float = 0.0
@@ -217,7 +245,7 @@ def analyze_transactions(transactions: List[Dict[str, Any]]) -> Dict[str, Any]:
             # Если amount - строка, пытаемся преобразовать в число
             if isinstance(amount, str):
                 # Проверяем, можно ли преобразовать строку в число
-                amount = float(amount) if amount.replace('-', '').replace('.', '').isdigit() else None
+                amount = float(amount) if amount.replace("-", "").replace(".", "").isdigit() else None
 
             # Если после преобразования amount остался None, пропускаем транзакцию
             if amount is None:
