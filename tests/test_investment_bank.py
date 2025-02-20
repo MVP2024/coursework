@@ -26,3 +26,35 @@ def test_investment_bank_invalid_limit():
     result = investment_bank(month, transactions, limit)
 
     assert json.loads(result)["error"] == "Недопустимый порог округления."
+
+
+def test_investment_bank_empty_transactions():
+    month = "2025-02"
+    transactions = []
+    limit = 50
+    result = investment_bank(month, transactions, limit)
+    assert json.loads(result) == {"общая_сумма": 0.0, "округленные_транзакции": []}
+
+
+def test_investment_bank_different_months():
+    transactions = [
+        {"Дата операции": "2025-01-15", "Сумма операции": 1000},
+        {"Дата операции": "2025-02-15", "Сумма операции": 500},
+        {"Дата операции": "2025-03-15", "Сумма операции": 750}
+    ]
+    month = "2025-02"
+    limit = 50
+    result = investment_bank(month, transactions, limit)
+    data = json.loads(result)
+    assert data["общая_сумма"] == 50.0
+
+
+def test_investment_bank_transaction_less_than_limit():
+    transactions = [
+        {"Дата операции": "2025-02-15", "Сумма операции": 30}
+    ]
+    month = "2025-02"
+    limit = 50
+    result = investment_bank(month, transactions, limit)
+    data = json.loads(result)
+    assert data["общая_сумма"] == 20.0

@@ -9,7 +9,7 @@ from src.utils import analyze_transactions, get_currency_rates, get_stock_price,
 logger = setup_logger(__name__)
 
 
-def main(date_str: str, range_type: str = "M") -> str:
+def events(date_str: str, range_type: str = "M") -> str:
     """
     Основная функция для анализа транзакций, получения курсов валют и биржевых цен.
     :param date_str: Дата в формате "YYYY-MM-DD".
@@ -111,6 +111,7 @@ def main(date_str: str, range_type: str = "M") -> str:
 
 
 # Запуск основной функции
+# pragma: no cover
 if __name__ == "__main__":
-    filtered_transactions = main("2020-12-20", "M")
+    filtered_transactions = events("2020-12-20", "M")
     print(filtered_transactions)

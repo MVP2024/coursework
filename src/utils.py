@@ -16,10 +16,10 @@ logger = setup_logger(__name__)
 load_dotenv()
 
 
-# Применяем декоратор
 @report_to_file()
-def load_data_from_excel(file_path: str) -> list[dict[Hashable, Any]]:
-    """Загрузка данных из Excel и преобразование в список словарей.
+def load_data_from_excel(file_path: str) -> List[Dict[Hashable, Any]]:
+    """
+    Загрузка данных из Excel и преобразование в список словарей.
 
     Args:
         file_path (str): Путь к файлу Excel.
@@ -29,106 +29,126 @@ def load_data_from_excel(file_path: str) -> list[dict[Hashable, Any]]:
 
     Raises:
         FileNotFoundError: Если файл не найден.
+        PermissionError: Если нет доступа к файлу.
+        ValueError: Если файл пустой или имеет некорректный формат.
     """
     logger.info(f"Загрузка данных из Excel: {file_path}")
 
     # Проверка существования файла
     if not os.path.exists(file_path):
-        logger.info(f"Файл не найден: {file_path}")
+        logger.error(f"Файл не найден: {file_path}")
         raise FileNotFoundError(f"Файл не найден: {file_path}")
+
+    # Проверка расширения файла
+    if not file_path.lower().endswith(('.xls', '.xlsx', '.xlsm', '.xlsb')):
+        logger.error(f"Некорректный формат файла: {file_path}")
+        raise ValueError("Поддерживаются только файлы Excel")
 
     try:
         df = pd.read_excel(file_path, na_filter=True)
         logger.info("Данные успешно загружены.")
+    except PermissionError as e:
+        logger.error(f"Ошибка доступа к файлу: {e}")
+        raise
     except Exception as e:
         logger.error(f"Ошибка при загрузке данных из Excel: {e}")
+        raise
+
+    # Если файл пустой, возвращаем пустой список
+    if df.empty:
+        logger.warning("Файл пуст.")
         return []
 
-    df.fillna(value=0, inplace=True)  # Заменит все NaN на 0
+    # Проверка наличия обязательных столбцов
+    required_columns = ["Категория", "Сумма операции"]
+    missing_columns = [col for col in required_columns if col not in df.columns]
+    if missing_columns:
+        logger.error(f"Отсутствуют обязательные столбцы: {missing_columns}")
+        raise ValueError(f"Отсутствуют обязательные столбцы: {missing_columns}")
 
-    # Преобразуем названия столбцов в строки и возвращаем список словарей
-    df.columns = df.columns.astype(str)  # Убедитесь, что названия столбцов - строки
+    # Заменяем NaN на 0 или пустые значения
+    df.fillna(value={
+        "Категория": "Без категории",
+        "Сумма операции": 0
+    }, inplace=True)
+
+    # Преобразуем названия столбцов в строки
+    df.columns = df.columns.astype(str)
+
+    # Возвращаем список словарей
     return df.to_dict(orient="records")
 
 
 # Применяем декоратор
 @report_to_file()
 def get_currency_rates(
-    api_key_currency: Optional[str] = None, base_currency: str = "RUB", target_currencies: Optional[List[str]] = None
+    api_key_currency: Optional[str] = None,
+    base_currency: str = "RUB",
+    target_currencies: Optional[List[str]] = None
 ) -> List[Dict[str, Any]]:
-    """Загружает данные о курсе валют с API и возвращает список словарей.
-
-    Args:
-        api_key_currency (Optional[str]): API-ключ для доступа к курсам валют.
-        base_currency (str): Базовая валюта для конвертации. По умолчанию "RUB".
-        target_currencies (Optional[List[str]]): Список целевых валют для получения курсов.
-
-    Returns:
-        List[Dict[str, Any]]: Список словарей с курсами валют.
-
-    Raises:
-        ValueError: Если API_KEY не установлен или не удалось получить курсы валют.
     """
-    logger.info("Получение курсов валют.")
+    Расширенное получение курсов валют с улучшенной обработкой ошибок.
+    """
+    logger.info("Начало получения курсов валют.")
 
-    # Если API-ключ не передан, пытаемся загрузить его из переменных окружения
-    if api_key_currency is None or api_key_currency == "":
-        api_key_currency = os.getenv("API_KEY_currency")
+    # Расширенная логика получения API-ключа
+    api_key_currency = (
+        api_key_currency or
+        os.getenv("API_KEY_currency") or
+        os.getenv("CURRENCY_API_KEY")
+    )
 
-    if not api_key_currency:  # Проверка на None и пустую строку после загрузки из окружения
-        logger.error("API_KEY не установлен.")
-        raise ValueError("API_KEY не установлен.")
+    if not api_key_currency:
+        logger.error("Не найден API-ключ для получения курсов валют.")
+        raise ValueError("API-ключ для курсов валют не установлен.")
 
-    logger.info("API_KEY_currency загружен.")  # Логируем, что ключ загружен
+    # URL с поддержкой различных API
+    url_templates = [
+        f"https://v6.exchangerate-api.com/v6/{api_key_currency}/latest/{base_currency}",
+        f"https://openexchangerates.org/api/latest.json?app_id={api_key_currency}"
+    ]
 
-    # URL API для получения курсов валют
-    url = f"https://v6.exchangerate-api.com/v6/{api_key_currency}/latest/{base_currency}"
-    headers = {"apikey": api_key_currency}
+    for url in url_templates:
+        try:
+            response = requests.get(url, timeout=10)
+            response.raise_for_status()
 
-    try:
-        # Отправляем GET-запрос к API
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()  # Проверяем, что запрос успешен
+            data = response.json()
 
-        # Парсим JSON-ответ
-        data = response.json()
+            # Гибкое извлечение курсов
+            rates = data.get("conversion_rates", {}) or data.get("rates", {})
 
-        # Извлекаем курсы валют
-        rates = data.get("conversion_rates", {})
-        logger.info("Курсы валют успешно получены.")
+            if not rates:
+                logger.warning("Не удалось извлечь курсы валют.")
+                continue
 
-        # Формируем список словарей в нужном формате
-        if target_currencies:
-            currency_rates = [
-                {"валюта": currency, "ставка": round(1 / rates[currency], 2)}
-                for currency in target_currencies
-                if currency in rates
-            ]
-        else:
-            currency_rates = [{"валюта": currency, "ставка": round(1 / rate, 2)} for currency, rate in rates.items()]
+            # Формирование списка курсов
+            if target_currencies:
+                currency_rates = [
+                    {"валюта": currency, "ставка": round(1 / rates.get(currency, 1), 2)}
+                    for currency in target_currencies
+                    if currency in rates
+                ]
+            else:
+                currency_rates = [
+                    {"валюта": currency, "ставка": round(1 / rate, 2)}
+                    for currency, rate in rates.items()
+                    if rate > 0
+                ]
 
-        return currency_rates
+            return currency_rates
 
-    except requests.exceptions.RequestException as e:
-        logger.error(f"Ошибка при получении курсов валют: {e}")
-        raise ValueError("Не удалось получить курсы валют.") from e
+        except (requests.RequestException, ValueError, KeyError) as e:
+            logger.warning(f"Ошибка при получении курсов с {url}: {e}")
+            continue
+
+    logger.error("Не удалось получить курсы валют ни от одного источника.")
+    raise ValueError("Не удалось получить курсы валют.")
 
 
 # Применяем декоратор
 @report_to_file()
 def get_stock_price(symbols: List[str], api_key_stock: Optional[str] = None) -> List[Dict[str, Any]]:
-    """Получение текущей стоимости акций по списку символов с использованием Alpha Vantage API.
-
-    Args:
-        symbols (List[str]): Список символов акций для получения цен.
-        api_key_stock (Optional[str]): API-ключ для доступа к данным акций.
-
-    Returns:
-        List[Dict[str, Any]]: Список словарей с текущими ценами акций.
-
-    Raises:
-        ValueError: Если API_KEY не установлен или не удалось получить данные акций.
-    """
     logger.info("Получение цен акций.")
 
     # Если API-ключ не передан, пытаемся загрузить его из переменных окружения
@@ -158,8 +178,13 @@ def get_stock_price(symbols: List[str], api_key_stock: Optional[str] = None) -> 
             # Извлекаем текущую стоимость акции
             price = data.get("Global Quote", {}).get("05. price", "N/A")
 
-            # Добавляем данные в список
-            stock_prices.append({"акция": symbol, "цена": float(price) if price != "N/A" else "Данные недоступны"})
+            # Добавляем данные в список с обработкой некорректных цен
+            try:
+                price_value = float(price) if price != "N/A" else "Данные недоступны"
+            except ValueError:
+                price_value = "Данные недоступны"
+
+            stock_prices.append({"акция": symbol, "цена": price_value})
             logger.info(f"Цена для {symbol}: {price}")
 
         except requests.exceptions.RequestException as e:
@@ -172,20 +197,12 @@ def get_stock_price(symbols: List[str], api_key_stock: Optional[str] = None) -> 
 # Применяем декоратор
 @report_to_file()
 def analyze_transactions(transactions: List[Dict[str, Any]]) -> Dict[str, Any]:
-    """Анализ транзакций и формирование отчета.
-
-    Args:
-        transactions (List[Dict[str, Any]]): Список транзакций для анализа.
-
-    Returns:
-        Dict[str, Any]: Словарь с результатами анализа, включая общие суммы расходов и доходов, а также категории.
-    """
     logger.info("Начало анализа транзакций.")
-    category_totals: defaultdict[str, float] = defaultdict(float)  # Добавлена аннотация типа
-    total_expenses: float = 0.0  # Изменен тип на float
-    total_income: float = 0.0  # Изменен тип на float
-    amount_income: float = 0.0  # Для пополнений, изменен тип на float
-    amount_cashback: float = 0.0  # Для бонусов и кэшбэка, изменен тип на float
+    category_totals: defaultdict[str, float] = defaultdict(float)
+    total_expenses: float = 0.0
+    total_income: float = 0.0
+    amount_income: float = 0.0
+    amount_cashback: float = 0.0
 
     for transaction in transactions:
         category = transaction.get("Категория")
@@ -193,17 +210,33 @@ def analyze_transactions(transactions: List[Dict[str, Any]]) -> Dict[str, Any]:
 
         if category is None or amount is None:
             logger.warning("Пропущена транзакция из-за отсутствия категории или суммы.")
-            continue  # Пропускаем транзакцию, если данные неполные
+            continue
 
-        if isinstance(amount, (int, float)):  # Проверяем, что сумма — число
+        # Преобразование строкового значения в число с дополнительной проверкой
+        try:
+            # Если amount - строка, пытаемся преобразовать в число
+            if isinstance(amount, str):
+                # Проверяем, можно ли преобразовать строку в число
+                amount = float(amount) if amount.replace('-', '').replace('.', '').isdigit() else None
+
+            # Если после преобразования amount остался None, пропускаем транзакцию
+            if amount is None:
+                logger.warning(f"Некорректный формат суммы для категории {category}")
+                continue
+
+        except (ValueError, TypeError):
+            logger.warning(f"Некорректный формат суммы для категории {category}: {amount}")
+            continue
+
+        if isinstance(amount, (int, float)):
             if amount < 0:  # Расходы
                 total_expenses += abs(amount)
                 category_totals[category] += abs(amount)
             else:  # Поступления
                 total_income += amount
-                if category == "Пополнения":  # Пополнения
+                if category == "Пополнения":
                     amount_income += amount
-                elif category == "Бонусы (включая кэшбэк)":  # Бонусы
+                elif category == "Бонусы (включая кэшбэк)":
                     amount_cashback += amount
         else:
             logger.warning(f"Некорректный тип суммы для категории {category}: {amount}")
@@ -223,12 +256,12 @@ def analyze_transactions(transactions: List[Dict[str, Any]]) -> Dict[str, Any]:
 
     logger.info("Анализ транзакций завершен.")
     return {
-        "Расходы": {"Общая сумма": round(total_expenses), "Основные": result_expenses},
+        "Расходы": {"Общая сумма": round(total_expenses, 2), "Основные": result_expenses},
         "Доходы": {
-            "Общий доход": round(total_income),
+            "Общий доход": round(total_income, 2),
             "Категории": [
-                {"Категория": "Пополнения", "Сумма": round(amount_income)},
-                {"Категория": "Бонусы (включая кэшбэк)", "Сумма": round(amount_cashback)},
+                {"Категория": "Пополнения", "Сумма": round(amount_income, 2)},
+                {"Категория": "Бонусы (включая кэшбэк)", "Сумма": round(amount_cashback, 2)},
             ],
         },
     }
