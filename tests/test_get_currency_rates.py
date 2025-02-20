@@ -1,6 +1,7 @@
+from unittest.mock import Mock, patch
+
 import pytest
 import requests
-from unittest.mock import Mock, patch
 
 from src.utils import get_currency_rates
 
@@ -41,13 +42,7 @@ def test_get_currency_rates_no_target_currencies():
     """Проверка получения курсов валют без указания целевых валют"""
     api_key = "fake_api_key"
     mock_response = Mock()
-    mock_response.json.return_value = {
-        "conversion_rates": {
-            "USD": 100,
-            "EUR": 50,
-            "GBP": 75
-        }
-    }
+    mock_response.json.return_value = {"conversion_rates": {"USD": 100, "EUR": 50, "GBP": 75}}
     mock_response.status_code = 200
 
     with patch("requests.get", return_value=mock_response):
@@ -81,12 +76,7 @@ def test_get_currency_rates_zero_rates():
     """Проверка обработки курсов с нулевыми значениями"""
     api_key = "fake_api_key"
     mock_response = Mock()
-    mock_response.json.return_value = {
-        "conversion_rates": {
-            "USD": 0,
-            "EUR": 0
-        }
-    }
+    mock_response.json.return_value = {"conversion_rates": {"USD": 0, "EUR": 0}}
     mock_response.status_code = 200
 
     with patch("requests.get", return_value=mock_response):
@@ -96,16 +86,10 @@ def test_get_currency_rates_zero_rates():
 
 def test_get_currency_rates_default_currencies():
     # Мокаем requests.get, чтобы вернуть тестовые данные
-    with patch('requests.get') as mock_get, \
-         patch.dict('os.environ', {'API_KEY_currency': 'test_key'}):
+    with patch("requests.get") as mock_get, patch.dict("os.environ", {"API_KEY_currency": "test_key"}):
         mock_response = Mock()
         mock_response.json.return_value = {
-            "conversion_rates": {
-                "USD": 1.5,
-                "EUR": 0.8,
-                "GBP": 0,  # Нулевая ставка
-                "JPY": -2   # Отрицательная ставка
-            }
+            "conversion_rates": {"USD": 1.5, "EUR": 0.8, "GBP": 0, "JPY": -2}  # Нулевая ставка  # Отрицательная ставка
         }
         mock_get.return_value = mock_response
         mock_get.return_value.raise_for_status = Mock()

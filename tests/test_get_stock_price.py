@@ -1,6 +1,8 @@
 import unittest
 from unittest.mock import Mock, patch
+
 import requests
+
 from src.utils import get_stock_price
 
 

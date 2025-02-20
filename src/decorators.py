@@ -32,7 +32,7 @@ def report_to_file(filename: Optional[str] = None) -> Callable:
                 # Проверяем, является ли результат кортежем с DataFrame
                 if isinstance(result, tuple) and len(result) == 2:
                     # Преобразуем DataFrame в список словарей
-                    result = (result[0].to_dict(orient='records'), result[1])
+                    result = (result[0].to_dict(orient="records"), result[1])
 
                 with open(file_path, "w", encoding="utf-8") as file:
                     json.dump(result, file, ensure_ascii=False, indent=4)

@@ -40,7 +40,7 @@ def test_investment_bank_different_months():
     transactions = [
         {"Дата операции": "2025-01-15", "Сумма операции": 1000},
         {"Дата операции": "2025-02-15", "Сумма операции": 500},
-        {"Дата операции": "2025-03-15", "Сумма операции": 750}
+        {"Дата операции": "2025-03-15", "Сумма операции": 750},
     ]
     month = "2025-02"
     limit = 50
@@ -50,9 +50,7 @@ def test_investment_bank_different_months():
 
 
 def test_investment_bank_transaction_less_than_limit():
-    transactions = [
-        {"Дата операции": "2025-02-15", "Сумма операции": 30}
-    ]
+    transactions = [{"Дата операции": "2025-02-15", "Сумма операции": 30}]
     month = "2025-02"
     limit = 50
     result = investment_bank(month, transactions, limit)
