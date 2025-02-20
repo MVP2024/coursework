@@ -1,5 +1,10 @@
 from datetime import datetime
 
+from src.logger import setup_logger
+
+# Настройка логгера для модуля
+logger = setup_logger(__name__)
+
 
 def get_greeting() -> str:
     """
@@ -19,14 +24,19 @@ def get_greeting() -> str:
     current_time = datetime.now().time()  # Получаем текущее время
     hour = current_time.hour  # Извлекаем часы
 
+    logger.info(f"Определение приветствия для текущего времени: {current_time}")
+
     if 5 <= hour < 12:
-        return "Доброе утро"
+        greeting = "Доброе утро"
     elif 12 <= hour < 18:
-        return "Добрый день"
+        greeting = "Добрый день"
     elif 18 <= hour < 23:
-        return "Добрый вечер"
+        greeting = "Добрый вечер"
     else:
-        return "Доброй ночи"
+        greeting = "Доброй ночи"
+
+    logger.info(f"Выбрано приветствие: {greeting}")
+    return greeting
 
 
 # def filter_transactions(transactions: List[Dict[str, Any]], date_str: str, range_type: str) -> List[Dict[str, Any]]:
