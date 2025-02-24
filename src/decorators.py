@@ -1,33 +1,22 @@
 import functools
 import json
-import logging
 import os
 from datetime import datetime
 from typing import Any, Callable, Optional
 
-# Настройка логирования
-logging.basicConfig(level=logging.INFO)
+from src.logger import setup_logger
+
+# Создаем логгер для этого модуля
+logger = setup_logger(__name__)
 
 
 def report_to_file(filename: Optional[str] = None) -> Callable:
-    """Декоратор для сохранения результата функции в JSON-файл.
-
-    Args:
-        filename (Optional[str]): Имя файла для сохранения результата.
-                                  Если не указано, будет сгенерировано автоматически.
-
-    Returns:
-        Callable: Обернутая функция, которая сохраняет результат в файл.
-    """
-
     def decorator(func: Callable) -> Callable:
         @functools.wraps(func)
         def wrapper(*args: Any, **kwargs: Any) -> Any:
-            # Определяем директорию для сохранения
             output_directory = os.path.join(os.path.dirname(__file__), "decorator_output")
-            os.makedirs(output_directory, exist_ok=True)  # Создаем директорию, если она не существует
+            os.makedirs(output_directory, exist_ok=True)
 
-            # Генерация имени файла, если оно не указано
             if filename is None:
                 current_date = datetime.now().strftime("%Y-%m-%d")
                 function_name = func.__name__
@@ -35,29 +24,26 @@ def report_to_file(filename: Optional[str] = None) -> Callable:
             else:
                 generated_filename = filename
 
-            # Полный путь к файлу
             file_path = os.path.join(output_directory, generated_filename)
 
             try:
-                # Вызов функции и получение результата
                 result = func(*args, **kwargs)
 
-                # Запись результата в JSON-файл
-                if isinstance(result, tuple):
+                # Проверяем, является ли результат кортежем с DataFrame
+                if isinstance(result, tuple) and len(result) == 2:
                     # Преобразуем DataFrame в список словарей
-                    result_to_save = (result[0].to_dict(orient="records"), result[1])
-                else:
-                    result_to_save = result
+                    result = (result[0].to_dict(orient="records"), result[1])
 
                 with open(file_path, "w", encoding="utf-8") as file:
-                    json.dump(result_to_save, file, ensure_ascii=False, indent=4)
-                logging.info(f"Результат функции '{func.__name__}' сохранен в файл: {file_path}")
+                    json.dump(result, file, ensure_ascii=False, indent=4)
 
-            except (TypeError, ValueError) as e:
-                logging.error(f"Ошибка при записи результата в файл: {e}")
-                raise  # Передаем исключение дальше
+                return result
 
-            return result
+            except Exception as e:
+                # Логируем оригинальное исключение
+                logger.error(f"Ошибка при выполнении функции: {e}")
+                # Перебрасываем исключение с префиксом для совместимости с тестами
+                raise ValueError(f"Ошибка при сохранении результата: {e}")
 
         return wrapper
 

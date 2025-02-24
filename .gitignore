@@ -1,7 +1,5 @@
 .idea/
 __pycache__
-poetry.lock
-pyproject.toml
 *.py[cod]
 *$py.class
 
